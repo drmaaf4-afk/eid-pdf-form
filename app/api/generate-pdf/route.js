@@ -1,6 +1,4 @@
-import { PDFDocument } from 'pdf-lib';
-import fontkit from '@pdf-lib/fontkit';
-import ArabicReshaper from 'arabic-persian-reshaper';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
 
@@ -9,61 +7,133 @@ export async function POST(req) {
     const { name, job, computerNo, days } = await req.json();
 
     const pdfPath = path.join(process.cwd(), 'public', 'eid-template.pdf');
-    const pdfBytes = fs.readFileSync(pdfPath);
+    const existingPdfBytes = fs.readFileSync(pdfPath);
 
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    pdfDoc.registerFontkit(fontkit);
-
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const page = pdfDoc.getPages()[0];
 
-    const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Amiri-Regular.ttf');
-    const fontBytes = fs.readFileSync(fontPath);
-    const font = await pdfDoc.embedFont(fontBytes);
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    function shapeArabicText(text) {
-      const safe = String(text || '').trim();
-      if (!safe) return '';
+    // Safe text lengths
+    const safeName = String(name || '').slice(0, 28);
+    const safeJob = String(job || '').slice(0, 18);
+    const safeComputerNo = String(computerNo || '').slice(0, 14);
+    const safeDays = String(days || '').slice(0, 5);
 
-      const hasArabic = /[\u0600-\u06FF]/.test(safe);
-      if (!hasArabic) return safe;
+    // Table placement on the original PDF
+    const tableX = 82;
+    const tableY = 585;
+    const tableWidth = 503;
+    const tableHeight = 70;
+    const headerHeight = 34;
+    const rowHeight = tableHeight - headerHeight;
 
-      const reshaped = ArabicReshaper.convertArabic(safe);
-      return reshaped.split('').reverse().join('');
-    }
+    // Column widths
+    const daysW = 90;
+    const computerW = 120;
+    const jobW = 120;
+    const nameW = tableWidth - daysW - computerW - jobW;
 
-    function fitTextToWidth(text, size, maxWidth) {
-      let safeText = shapeArabicText(text);
+    const x1 = tableX + daysW;
+    const x2 = x1 + computerW;
+    const x3 = x2 + jobW;
+    const headerBottomY = tableY + rowHeight;
 
-      while (
-        safeText.length > 0 &&
-        font.widthOfTextAtSize(safeText, size) > maxWidth
-      ) {
-        safeText = safeText.slice(0, -1);
+    // Cover old table row
+    page.drawRectangle({
+      x: tableX - 2,
+      y: tableY - 2,
+      width: tableWidth + 4,
+      height: tableHeight + 4,
+      color: rgb(1, 1, 1),
+    });
+
+    // Header background
+    page.drawRectangle({
+      x: tableX,
+      y: headerBottomY,
+      width: tableWidth,
+      height: headerHeight,
+      color: rgb(0.93, 0.93, 0.93),
+    });
+
+    // Outer border
+    page.drawRectangle({
+      x: tableX,
+      y: tableY,
+      width: tableWidth,
+      height: tableHeight,
+      borderWidth: 1.2,
+      borderColor: rgb(0, 0, 0),
+    });
+
+    // Column lines
+    page.drawLine({
+      start: { x: x1, y: tableY },
+      end: { x: x1, y: tableY + tableHeight },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+    page.drawLine({
+      start: { x: x2, y: tableY },
+      end: { x: x2, y: tableY + tableHeight },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+    page.drawLine({
+      start: { x: x3, y: tableY },
+      end: { x: x3, y: tableY + tableHeight },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+
+    // Header/value divider
+    page.drawLine({
+      start: { x: tableX, y: headerBottomY },
+      end: { x: tableX + tableWidth, y: headerBottomY },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+
+    function fitText(text, usedFont, size, maxWidth) {
+      let t = String(text || '');
+      while (t.length > 0 && usedFont.widthOfTextAtSize(t, size) > maxWidth) {
+        t = t.slice(0, -1);
       }
-
-      return safeText;
+      return t;
     }
 
-    function drawRightText(text, xRight, y, size = 12, maxWidth = 140) {
-      const safeText = fitTextToWidth(text, size, maxWidth);
-      const textWidth = font.widthOfTextAtSize(safeText, size);
+    function drawCenteredText(text, x, y, width, height, usedFont, size = 10, padding = 6) {
+      const fitted = fitText(text, usedFont, size, width - padding * 2);
+      const textWidth = usedFont.widthOfTextAtSize(fitted, size);
+      const textX = x + (width - textWidth) / 2;
+      const textY = y + (height - size) / 2 + 2;
 
-      page.drawText(safeText, {
-        x: xRight - textWidth,
-        y,
+      page.drawText(fitted, {
+        x: textX,
+        y: textY,
         size,
-        font,
+        font: usedFont,
+        color: rgb(0, 0, 0),
       });
     }
 
-    drawRightText(name, 560, 610, 12, 150);
-    drawRightText(job, 430, 610, 12, 120);
-    drawRightText(computerNo, 300, 610, 12, 100);
-    drawRightText(days, 170, 610, 12, 70);
+    // English headers
+    drawCenteredText('Days', tableX, headerBottomY, daysW, headerHeight, boldFont, 10);
+    drawCenteredText('Computer No', x1, headerBottomY, computerW, headerHeight, boldFont, 10);
+    drawCenteredText('Job', x2, headerBottomY, jobW, headerHeight, boldFont, 10);
+    drawCenteredText('Name', x3, headerBottomY, nameW, headerHeight, boldFont, 10);
 
-    const finalPdf = await pdfDoc.save();
+    // Values
+    drawCenteredText(safeDays, tableX, tableY, daysW, rowHeight, font, 10);
+    drawCenteredText(safeComputerNo, x1, tableY, computerW, rowHeight, font, 10);
+    drawCenteredText(safeJob, x2, tableY, jobW, rowHeight, font, 10);
+    drawCenteredText(safeName, x3, tableY, nameW, rowHeight, font, 10);
 
-    return new Response(finalPdf, {
+    const pdfBytes = await pdfDoc.save();
+
+    return new Response(pdfBytes, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
