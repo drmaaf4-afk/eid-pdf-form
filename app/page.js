@@ -7,13 +7,20 @@ export default function Home() {
   const [job, setJob] = useState('');
   const [computerNo, setComputerNo] = useState('');
   const [days, setDays] = useState('');
+  const [department, setDepartment] = useState('');
 
   async function generatePDF() {
     try {
       const res = await fetch('/api/generate-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, job, computerNo, days }),
+        body: JSON.stringify({
+          name,
+          job,
+          computerNo,
+          days,
+          department,
+        }),
       });
 
       if (!res.ok) {
@@ -68,6 +75,13 @@ export default function Home() {
         placeholder="Days"
         value={days}
         onChange={(e) => setDays(e.target.value)}
+        style={{ width: '100%', marginBottom: 8, padding: 10 }}
+      />
+
+      <input
+        placeholder="Department"
+        value={department}
+        onChange={(e) => setDepartment(e.target.value)}
         style={{ width: '100%', marginBottom: 12, padding: 10 }}
       />
 
