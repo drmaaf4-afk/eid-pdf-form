@@ -15,8 +15,6 @@ export async function POST(req) {
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    const pageWidth = page.getWidth();
-
     const safeName = String(name || '').slice(0, 30);
     const safeJob = String(job || '').slice(0, 20);
     const safeComputerNo = String(computerNo || '').slice(0, 15);
@@ -30,7 +28,7 @@ export async function POST(req) {
     const headerHeight = 34;
     const rowHeight = tableHeight - headerHeight;
 
-    // Column widths (left to right on page)
+    // Column widths
     const daysW = 110;
     const computerW = 100;
     const jobW = 120;
@@ -42,7 +40,7 @@ export async function POST(req) {
 
     const headerBottomY = tableY + rowHeight;
 
-    // Cover original table area
+    // Cover old table
     page.drawRectangle({
       x: tableX - 2,
       y: tableY - 2,
@@ -51,7 +49,7 @@ export async function POST(req) {
       color: rgb(1, 1, 1),
     });
 
-    // Draw outer border
+    // Outer border
     page.drawRectangle({
       x: tableX,
       y: tableY,
@@ -61,7 +59,7 @@ export async function POST(req) {
       borderColor: rgb(0, 0, 0),
     });
 
-    // Draw header background
+    // Header background
     page.drawRectangle({
       x: tableX,
       y: headerBottomY,
@@ -70,40 +68,12 @@ export async function POST(req) {
       color: rgb(0.92, 0.92, 0.92),
     });
 
-    // Redraw outer border on top
-    page.drawRectangle({
-      x: tableX,
-      y: tableY,
-      width: tableWidth,
-      height: tableHeight,
-      borderWidth: 1.2,
-      borderColor: rgb(0, 0, 0),
-      opacity: 0,
-    });
-
     // Vertical lines
-    page.drawLine({
-      start: { x: x1, y: tableY },
-      end: { x: x1, y: tableY + tableHeight },
-      thickness: 1,
-      color: rgb(0, 0, 0),
-    });
+    page.drawLine({ start: { x: x1, y: tableY }, end: { x: x1, y: tableY + tableHeight }, thickness: 1, color: rgb(0,0,0) });
+    page.drawLine({ start: { x: x2, y: tableY }, end: { x: x2, y: tableY + tableHeight }, thickness: 1, color: rgb(0,0,0) });
+    page.drawLine({ start: { x: x3, y: tableY }, end: { x: x3, y: tableY + tableHeight }, thickness: 1, color: rgb(0,0,0) });
 
-    page.drawLine({
-      start: { x: x2, y: tableY },
-      end: { x: x2, y: tableY + tableHeight },
-      thickness: 1,
-      color: rgb(0, 0, 0),
-    });
-
-    page.drawLine({
-      start: { x: x3, y: tableY },
-      end: { x: x3, y: tableY + tableHeight },
-      thickness: 1,
-      color: rgb(0, 0, 0),
-    });
-
-    // Horizontal line between header and values
+    // Horizontal divider
     page.drawLine({
       start: { x: tableX, y: headerBottomY },
       end: { x: tableX + tableWidth, y: headerBottomY },
@@ -114,9 +84,8 @@ export async function POST(req) {
     function drawCenteredText(text, x, y, width, height, usedFont, size = 10) {
       const safeText = String(text || '');
       const textWidth = usedFont.widthOfTextAtSize(safeText, size);
-      const textHeight = size;
       const textX = x + (width - textWidth) / 2;
-      const textY = y + (height - textHeight) / 2 + 2;
+      const textY = y + (height - size) / 2 + 2;
 
       page.drawText(safeText, {
         x: textX,
@@ -127,11 +96,11 @@ export async function POST(req) {
       });
     }
 
-    // Headers
-    drawCenteredText('الاسم', x3, headerBottomY, nameW, headerHeight, boldFont, 10);
-    drawCenteredText('الوظيفة', x2, headerBottomY, jobW, headerHeight, boldFont, 10);
-    drawCenteredText('رقم الكمبيوتر', x1, headerBottomY, computerW, headerHeight, boldFont, 10);
-    drawCenteredText('عدد أيام التكليف', tableX, headerBottomY, daysW, headerHeight, boldFont, 10);
+    // ✅ ENGLISH HEADERS (FIXED)
+    drawCenteredText('Name', x3, headerBottomY, nameW, headerHeight, boldFont, 10);
+    drawCenteredText('Job', x2, headerBottomY, jobW, headerHeight, boldFont, 10);
+    drawCenteredText('Computer No', x1, headerBottomY, computerW, headerHeight, boldFont, 10);
+    drawCenteredText('Days', tableX, headerBottomY, daysW, headerHeight, boldFont, 10);
 
     // Values
     drawCenteredText(safeName, x3, tableY, nameW, rowHeight, font, 9);
