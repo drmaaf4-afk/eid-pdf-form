@@ -4,7 +4,7 @@ import path from 'path';
 
 export async function POST(req) {
   try {
-    const { name, job, computerNo, days } = await req.json();
+    const { name, job, computerNo, days, department } = await req.json();
 
     const pdfPath = path.join(process.cwd(), 'public', 'eid-template.pdf');
 
@@ -24,6 +24,7 @@ export async function POST(req) {
     const safeJob = String(job || '').slice(0, 18);
     const safeComputerNo = String(computerNo || '').slice(0, 14);
     const safeDays = String(days || '').slice(0, 5);
+    const safeDepartment = String(department || '').slice(0, 24);
 
     const tableX = 50;
     const tableY = 600;
@@ -67,7 +68,7 @@ export async function POST(req) {
       borderColor: rgb(0, 0, 0),
     });
 
-    [x1, x2, x3].forEach(x => {
+    [x1, x2, x3].forEach((x) => {
       page.drawLine({
         start: { x, y: tableY },
         end: { x, y: tableY + tableHeight },
@@ -115,6 +116,14 @@ export async function POST(req) {
     drawCenteredText(safeComputerNo, x1, tableY, computerW, rowHeight, font);
     drawCenteredText(safeJob, x2, tableY, jobW, rowHeight, font);
     drawCenteredText(safeName, x3, tableY, nameW, rowHeight, font);
+
+    page.drawText(safeDepartment, {
+      x: 455,
+      y: 505,
+      size: 12,
+      font,
+      color: rgb(0, 0, 0),
+    });
 
     const pdfBytes = await pdfDoc.save();
 
