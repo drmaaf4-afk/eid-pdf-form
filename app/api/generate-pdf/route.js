@@ -6,26 +6,25 @@ export async function POST(req) {
   try {
     const { name, job, computerNo, days } = await req.json();
 
-    // Load template
     const pdfPath = path.join(process.cwd(), 'public', 'eid-template.pdf');
+
+    if (!fs.existsSync(pdfPath)) {
+      throw new Error(`Template not found at: ${pdfPath}`);
+    }
+
     const existingPdfBytes = fs.readFileSync(pdfPath);
 
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const page = pdfDoc.getPages()[0];
 
-    // Fonts
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    // Safe values
     const safeName = String(name || '').slice(0, 28);
     const safeJob = String(job || '').slice(0, 18);
     const safeComputerNo = String(computerNo || '').slice(0, 14);
     const safeDays = String(days || '').slice(0, 5);
 
-    // =========================
-    // TABLE POSITION (OPTIMIZED)
-    // =========================
     const tableX = 50;
     const tableY = 600;
     const tableWidth = 500;
@@ -33,7 +32,6 @@ export async function POST(req) {
     const headerHeight = 20;
     const rowHeight = tableHeight - headerHeight;
 
-    // Column widths
     const daysW = 100;
     const computerW = 110;
     const jobW = 110;
@@ -44,9 +42,6 @@ export async function POST(req) {
     const x3 = x2 + jobW;
     const headerBottomY = tableY + rowHeight;
 
-    // =========================
-    // CLEAN OLD TABLE AREA
-    // =========================
     page.drawRectangle({
       x: tableX - 3,
       y: tableY - 3,
@@ -55,9 +50,6 @@ export async function POST(req) {
       color: rgb(1, 1, 1),
     });
 
-    // =========================
-    // HEADER BACKGROUND
-    // =========================
     page.drawRectangle({
       x: tableX,
       y: headerBottomY,
@@ -66,9 +58,6 @@ export async function POST(req) {
       color: rgb(0.93, 0.93, 0.93),
     });
 
-    // =========================
-    // TABLE BORDER
-    // =========================
     page.drawRectangle({
       x: tableX,
       y: tableY,
@@ -78,7 +67,6 @@ export async function POST(req) {
       borderColor: rgb(0, 0, 0),
     });
 
-    // Vertical lines
     [x1, x2, x3].forEach(x => {
       page.drawLine({
         start: { x, y: tableY },
@@ -88,7 +76,6 @@ export async function POST(req) {
       });
     });
 
-    // Horizontal line
     page.drawLine({
       start: { x: tableX, y: headerBottomY },
       end: { x: tableX + tableWidth, y: headerBottomY },
@@ -96,9 +83,6 @@ export async function POST(req) {
       color: rgb(0, 0, 0),
     });
 
-    // =========================
-    // TEXT HELPERS
-    // =========================
     function fitText(text, usedFont, size, maxWidth) {
       let t = String(text || '');
       while (t.length > 0 && usedFont.widthOfTextAtSize(t, size) > maxWidth) {
@@ -110,7 +94,6 @@ export async function POST(req) {
     function drawCenteredText(text, x, y, width, height, usedFont, size = 9) {
       const fitted = fitText(text, usedFont, size, width - 10);
       const textWidth = usedFont.widthOfTextAtSize(fitted, size);
-
       const textX = x + (width - textWidth) / 2;
       const textY = y + (height - size) / 2 + 2;
 
@@ -123,25 +106,16 @@ export async function POST(req) {
       });
     }
 
-    // =========================
-    // HEADERS (ENGLISH)
-    // =========================
     drawCenteredText('Days', tableX, headerBottomY, daysW, headerHeight, boldFont);
     drawCenteredText('Computer No', x1, headerBottomY, computerW, headerHeight, boldFont);
     drawCenteredText('Job', x2, headerBottomY, jobW, headerHeight, boldFont);
     drawCenteredText('Name', x3, headerBottomY, nameW, headerHeight, boldFont);
 
-    // =========================
-    // VALUES
-    // =========================
     drawCenteredText(safeDays, tableX, tableY, daysW, rowHeight, font);
     drawCenteredText(safeComputerNo, x1, tableY, computerW, rowHeight, font);
     drawCenteredText(safeJob, x2, tableY, jobW, rowHeight, font);
     drawCenteredText(safeName, x3, tableY, nameW, rowHeight, font);
 
-    // =========================
-    // EXPORT PDF
-    // =========================
     const pdfBytes = await pdfDoc.save();
 
     return new Response(pdfBytes, {
@@ -151,10 +125,8 @@ export async function POST(req) {
         'Content-Disposition': 'attachment; filename="eid-form.pdf"',
       },
     });
-
   } catch (error) {
     console.error(error);
-
     return new Response(`PDF generation failed: ${error.message}`, {
       status: 500,
     });
