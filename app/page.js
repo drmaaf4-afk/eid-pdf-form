@@ -47,7 +47,30 @@ export default function Home() {
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 420 }}>
+    <div style={{ padding: 20, maxWidth: 420, margin: '0 auto' }}>
+
+      {/* ✅ HEADER ADDED */}
+      <div
+        style={{
+          textAlign: 'center',
+          marginBottom: 20,
+          backgroundColor: '#2f3f86',
+          padding: '15px',
+          borderRadius: '14px',
+        }}
+      >
+        <img
+          src="/header.png"
+          alt="Hospital Logo"
+          style={{
+            maxWidth: '260px',
+            height: 'auto',
+            filter: 'brightness(0) invert(1)', // white logo
+          }}
+        />
+      </div>
+
+      {/* ORIGINAL FORM */}
       <h2>Eid Assignment Form</h2>
 
       <input
