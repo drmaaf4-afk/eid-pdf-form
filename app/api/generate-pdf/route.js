@@ -118,8 +118,8 @@ export async function POST(req) {
     drawCenteredText(safeName, x3, tableY, nameW, rowHeight, font);
 
     page.drawText(safeDepartment, {
-      x: 455,
-      y: 505,
+      x: 398,
+      y: 590,
       size: 12,
       font,
       color: rgb(0, 0, 0),
