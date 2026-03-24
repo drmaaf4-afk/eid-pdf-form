@@ -6,41 +6,49 @@ export async function POST(req) {
   try {
     const { name, job, computerNo, days } = await req.json();
 
+    // Load template PDF
     const pdfPath = path.join(process.cwd(), 'public', 'eid-template.pdf');
     const existingPdfBytes = fs.readFileSync(pdfPath);
 
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const page = pdfDoc.getPages()[0];
+
+    // Use standard font (for English)
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    page.drawText(name || '', {
-      x: 445,
-      y: 612,
-      size: 11,
+    // Prevent overflow for long names
+    const safeName = (name || '').slice(0, 25);
+
+    // Draw values (aligned to your form)
+    page.drawText(safeName, {
+      x: 430,
+      y: 610,
+      size: 10,
       font,
     });
 
     page.drawText(job || '', {
-      x: 330,
-      y: 612,
-      size: 11,
+      x: 310,
+      y: 610,
+      size: 10,
       font,
     });
 
     page.drawText(computerNo || '', {
-      x: 228,
-      y: 612,
-      size: 11,
+      x: 205,
+      y: 610,
+      size: 10,
       font,
     });
 
     page.drawText(String(days || ''), {
-      x: 128,
-      y: 612,
-      size: 11,
+      x: 115,
+      y: 610,
+      size: 10,
       font,
     });
 
+    // Save PDF
     const pdfBytes = await pdfDoc.save();
 
     return new Response(pdfBytes, {
@@ -51,6 +59,8 @@ export async function POST(req) {
       },
     });
   } catch (error) {
+    console.error(error);
+
     return new Response(`PDF generation failed: ${error.message}`, {
       status: 500,
     });
