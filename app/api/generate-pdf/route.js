@@ -12,10 +12,10 @@ export async function POST(req) {
   const page = pdfDoc.getPages()[0];
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  page.drawText(name || '', { x: 420, y: 627, size: 10, font });
-  page.drawText(job || '', { x: 315, y: 627, size: 10, font });
-  page.drawText(computerNo || '', { x: 220, y: 627, size: 10, font });
-  page.drawText(days || '', { x: 120, y: 627, size: 10, font });
+  page.drawText(name || '',       { x: 445, y: 612, size: 11, font });
+  page.drawText(job || '',        { x: 330, y: 612, size: 11, font });
+  page.drawText(computerNo || '', { x: 228, y: 612, size: 11, font });
+  page.drawText(days || '',       { x: 128, y: 612, size: 11, font });
 
   const pdfBytes = await pdfDoc.save();
 
