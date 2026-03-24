@@ -117,9 +117,10 @@ export async function POST(req) {
     drawCenteredText(safeJob, x2, tableY, jobW, rowHeight, font);
     drawCenteredText(safeName, x3, tableY, nameW, rowHeight, font);
 
+    // ✅ Department position updated (1 cm up + 1 cm left)
     page.drawText(safeDepartment, {
-      x: 285,
-      y: 562,
+      x: 257,
+      y: 590,
       size: 12,
       font,
       color: rgb(0, 0, 0),
