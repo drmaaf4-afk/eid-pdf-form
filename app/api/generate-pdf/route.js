@@ -1,4 +1,5 @@
 import { PDFDocument } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit'; // ✅ IMPORTANT
 import fs from 'fs';
 import path from 'path';
 
@@ -11,9 +12,13 @@ export async function POST(req) {
     const pdfBytes = fs.readFileSync(pdfPath);
 
     const pdfDoc = await PDFDocument.load(pdfBytes);
+
+    // ✅ REGISTER FONTKIT (THIS FIXES YOUR ERROR)
+    pdfDoc.registerFontkit(fontkit);
+
     const page = pdfDoc.getPages()[0];
 
-    // Load Arabic font (supports everything)
+    // Load Arabic font
     const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Amiri-Regular.ttf');
     const fontBytes = fs.readFileSync(fontPath);
     const font = await pdfDoc.embedFont(fontBytes);
@@ -31,7 +36,7 @@ export async function POST(req) {
       });
     }
 
-    // === Adjust positions here (fine tuning) ===
+    // === Adjust positions here ===
     drawRightText(name, 560, 610);        // الاسم
     drawRightText(job, 430, 610);         // الوظيفة
     drawRightText(computerNo, 300, 610);  // رقم الكمبيوتر
