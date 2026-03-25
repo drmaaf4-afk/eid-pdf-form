@@ -9,6 +9,16 @@ export default function Home() {
   const [days, setDays] = useState('');
   const [department, setDepartment] = useState('');
 
+  function isEnglishInput(value) {
+    return /^[A-Za-z0-9\s\-\/.()]*$/.test(value);
+  }
+
+  function handleEnglishOnly(value, setter) {
+    if (isEnglishInput(value)) {
+      setter(value);
+    }
+  }
+
   async function generatePDF() {
     try {
       const res = await fetch('/api/generate-pdf', {
@@ -70,7 +80,7 @@ export default function Home() {
         />
       </div>
 
-      {/* TITLE + ARABIC */}
+      {/* TITLE */}
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <h2 style={{ marginBottom: 5 }}>Eid Assignment Form</h2>
 
@@ -85,43 +95,54 @@ export default function Home() {
         </div>
       </div>
 
-      {/* FORM */}
+      {/* INPUTS */}
       <input
         placeholder="Name"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => handleEnglishOnly(e.target.value, setName)}
         style={{ width: '100%', marginBottom: 8, padding: 10 }}
       />
 
       <input
         placeholder="Job"
         value={job}
-        onChange={(e) => setJob(e.target.value)}
+        onChange={(e) => handleEnglishOnly(e.target.value, setJob)}
         style={{ width: '100%', marginBottom: 8, padding: 10 }}
       />
 
       <input
         placeholder="Computer No"
         value={computerNo}
-        onChange={(e) => setComputerNo(e.target.value)}
+        onChange={(e) => handleEnglishOnly(e.target.value, setComputerNo)}
         style={{ width: '100%', marginBottom: 8, padding: 10 }}
       />
 
       <input
         placeholder="Days"
         value={days}
-        onChange={(e) => setDays(e.target.value)}
+        onChange={(e) => handleEnglishOnly(e.target.value, setDays)}
         style={{ width: '100%', marginBottom: 8, padding: 10 }}
       />
 
       <input
         placeholder="Department"
         value={department}
-        onChange={(e) => setDepartment(e.target.value)}
+        onChange={(e) => handleEnglishOnly(e.target.value, setDepartment)}
         style={{ width: '100%', marginBottom: 12, padding: 10 }}
       />
 
-      <button onClick={generatePDF} style={{ padding: '10px 16px' }}>
+      <button
+        onClick={generatePDF}
+        style={{
+          padding: '10px 16px',
+          width: '100%',
+          backgroundColor: '#2f3f86',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          fontWeight: '600',
+        }}
+      >
         Generate PDF
       </button>
     </div>
