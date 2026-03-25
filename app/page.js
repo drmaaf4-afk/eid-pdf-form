@@ -8,6 +8,7 @@ export default function Home() {
   const [computerNo, setComputerNo] = useState('');
   const [days, setDays] = useState('');
   const [department, setDepartment] = useState('');
+  const [error, setError] = useState('');
 
   function isEnglishInput(value) {
     return /^[A-Za-z0-9\s\-\/.()]*$/.test(value);
@@ -16,10 +17,15 @@ export default function Home() {
   function handleEnglishOnly(value, setter) {
     if (isEnglishInput(value)) {
       setter(value);
+      setError('');
+    } else {
+      setError('البيانات باللغة الإنجليزية فقط');
     }
   }
 
   async function generatePDF() {
+    if (!name || !job || !computerNo || !days || !department) return;
+
     try {
       const res = await fetch('/api/generate-pdf', {
         method: 'POST',
@@ -93,6 +99,21 @@ export default function Home() {
         >
           نموذج تكليف عيد الفطر
         </div>
+
+        {/* 🔴 ERROR MESSAGE (only when Arabic entered) */}
+        {error && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: '14px',
+              color: '#c0392b',
+              fontWeight: '600',
+              direction: 'rtl',
+            }}
+          >
+            {error}
+          </div>
+        )}
       </div>
 
       {/* INPUTS */}
