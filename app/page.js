@@ -49,7 +49,7 @@ export default function Home() {
   return (
     <div style={{ padding: 20, maxWidth: 420, margin: '0 auto' }}>
 
-      {/* ✅ HEADER ADDED */}
+      {/* HEADER */}
       <div
         style={{
           textAlign: 'center',
@@ -65,14 +65,27 @@ export default function Home() {
           style={{
             maxWidth: '260px',
             height: 'auto',
-            filter: 'brightness(0) invert(1)', // white logo
+            filter: 'brightness(0) invert(1)',
           }}
         />
       </div>
 
-      {/* ORIGINAL FORM */}
-      <h2>Eid Assignment Form</h2>
+      {/* TITLE + ARABIC */}
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <h2 style={{ marginBottom: 5 }}>Eid Assignment Form</h2>
 
+        <div
+          style={{
+            direction: 'rtl',
+            fontSize: '18px',
+            fontWeight: '600',
+          }}
+        >
+          نموذج تكليف عيد الفطر
+        </div>
+      </div>
+
+      {/* FORM */}
       <input
         placeholder="Name"
         value={name}
